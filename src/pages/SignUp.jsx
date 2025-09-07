@@ -3,7 +3,8 @@ import bg from "../assets/authBg.png";
 import { IoEye } from "react-icons/io5";
 import { IoEyeOff } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-import { userDataContext } from "../context/userContext";
+import { userDataContext } from "../context/userContext.jsx";
+import axios from "axios";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,14 +14,24 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignUp = async () => {};
+  const handleSignUp = async (e) => {
+    e.preventDefault()
+    try {
+      let result = await axios.post(`${serverUrl}/api/auth/signup`,{
+        name, email, password
+      }, {withCredentials:true})
+      console.log(result.data)
+    } catch (error) {
+      console.log(error)
+    }
+  };
 
   return (
     <div
       className="w-full h-[100vh] bg-cover flex justify-center items-center"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <form className="w-[90%] h-[600px] max-w-[500px] bg-[#00000062] backdrop-blur shadow-lg shadow-blue-950 flex flex-col justify-center items-center gap-[20px] px-[20px]">
+      <form className="w-[90%] h-[600px] max-w-[500px] bg-[#00000062] backdrop-blur shadow-lg shadow-blue-950 flex flex-col justify-center items-center gap-[20px] px-[20px]" onSubmit={handleSignUp}>
         <h1 className="text-white text-[30px] font-semibold mb-[30px]">
           Register to <span className="text-blue-400">Virtual Assistant</span>
         </h1>
