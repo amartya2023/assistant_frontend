@@ -8,29 +8,37 @@ import axios from "axios";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const { serverUrl } = useContext(userDataContext);
+  const { serverUrl, userData, setUserData } = useContext(userDataContext);
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [err, setErr] = useState("")
+  const [err, setErr] = useState("");
 
   const handleSignUp = async (e) => {
-    e.preventDefault()
-    setErr("")
-    setLoading(true)
+    e.preventDefault();
+    setErr("");
+    setLoading(true);
     try {
-      let result = await axios.post(`${serverUrl}/api/auth/signup`,{
-        name, email, password
-      }, {withCredentials:true})
-      console.log(result.data)
-      setLoading(false)
+      let result = await axios.post(
+        `${serverUrl}/api/auth/signup`,
+        {
+          name,
+          email,
+          password,
+        },
+        { withCredentials: true }
+      );
+      setUserData(result.data);
+      setLoading(false);
+      navigate("/customize")
     } catch (error) {
-      console.log(error)
-      setLoading(false)
-      setErr(error.response.data.message)
+      console.log(error);
+      setUserData(null);
+      setLoading(false);
+      setErr(error.response.data.message);
     }
   };
 
@@ -39,7 +47,10 @@ const SignUp = () => {
       className="w-full h-[100vh] bg-cover flex justify-center items-center"
       style={{ backgroundImage: `url(${bg})` }}
     >
-      <form className="w-[90%] h-[600px] max-w-[500px] bg-[#00000062] backdrop-blur shadow-lg shadow-blue-950 flex flex-col justify-center items-center gap-[20px] px-[20px]" onSubmit={handleSignUp}>
+      <form
+        className="w-[90%] h-[600px] max-w-[500px] bg-[#00000062] backdrop-blur shadow-lg shadow-blue-950 flex flex-col justify-center items-center gap-[20px] px-[20px]"
+        onSubmit={handleSignUp}
+      >
         <h1 className="text-white text-[30px] font-semibold mb-[30px]">
           Register to <span className="text-blue-400">Virtual Assistant</span>
         </h1>
@@ -90,7 +101,10 @@ const SignUp = () => {
         {err.length > 0 && <p className="text-red-500 text-[17px]">*{err}</p>}
 
         {/* Sign Up button */}
-        <button className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer" disabled = {loading} >
+        <button
+          className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer"
+          disabled={loading}
+        >
           {loading ? "Loading..." : "Sign Up"}
         </button>
         <p className="text-white text-[18px]">

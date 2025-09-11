@@ -23,7 +23,7 @@ const UserContext = ({ children }) => {
   },[]);
 
   const value = {
-    serverUrl,
+    serverUrl,userData, setUserData
   };
 
   return (
