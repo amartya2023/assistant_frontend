@@ -9,6 +9,7 @@ import image6 from "../assets/image6.jpeg";
 import image7 from "../assets/image7.jpeg";
 import { LuImagePlus } from "react-icons/lu";
 import { userDataContext } from "../context/userContext";
+import { useNavigate } from "react-router-dom";
 
 const Customize = () => {
   const {
@@ -23,6 +24,7 @@ const Customize = () => {
     setSelectedImage,
   } = useContext(userDataContext);
 
+  const navigate = useNavigate()
   const inputImage = useRef();
 
   const handleImage = (e) => {
@@ -73,7 +75,7 @@ const Customize = () => {
         />
       </div>
       {selectedImage && (
-        <button className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer hover:bg-blue-600 hover:text-white">
+        <button className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer hover:bg-blue-600 hover:text-white" onClick={()=>navigate("/customize2")} >
           Next
         </button>
       )}
