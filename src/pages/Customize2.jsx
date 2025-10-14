@@ -1,11 +1,37 @@
 import { useContext, useState } from "react";
 import { userDataContext } from "../context/userContext";
+import axios from "axios";
 
 const Customize2 = () => {
-  const { userData } = useContext(userDataContext);
+  const { userData, backendImage, selectedImage, serverUrl, setUserData } =
+    useContext(userDataContext);
   const [assistantName, setAssistantName] = useState(
     userData?.assistantName || ""
   );
+
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdateAssistant = async () => {
+    try {
+      let formData = new FormData();
+      formData.append("assistantName", assistantName);
+      if (backendImage) {
+        formData.append("assistantImage", backendImage);
+      } else {
+        formData.append("imageUrl", selectedImage);
+      }
+      const result = await axios.post(
+        `${serverUrl}/api/user/update`,
+        formData,
+        { withCredentials: true }
+      );
+
+      console.log(result.data);
+      setUserData(result.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="w-full h-[100vh] bg-gradient-to-t from-[black] to-[#030353] flex justify-center items-center flex-col p-[20px]">
@@ -23,9 +49,13 @@ const Customize2 = () => {
       {assistantName && (
         <button
           className="min-w-[250px] mt-[30px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer hover:bg-blue-600 hover:text-white"
-          onClick={() => navigate("/customize2")}
+          disabled={loading}
+          onClick={() => {
+            // navigate("/customize2");
+            handleUpdateAssistant();
+          }}
         >
-          Create Your Assistant
+          {!loading?"Create Your Assistant":"Loading..."}
         </button>
       )}
     </div>
