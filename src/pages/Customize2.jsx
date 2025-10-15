@@ -1,6 +1,8 @@
 import { useContext, useState } from "react";
 import { userDataContext } from "../context/userContext";
 import axios from "axios";
+import { MdKeyboardBackspace } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
 const Customize2 = () => {
   const { userData, backendImage, selectedImage, serverUrl, setUserData } =
@@ -10,6 +12,7 @@ const Customize2 = () => {
   );
 
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleUpdateAssistant = async () => {
     try {
@@ -34,7 +37,8 @@ const Customize2 = () => {
   };
 
   return (
-    <div className="w-full h-[100vh] bg-gradient-to-t from-[black] to-[#030353] flex justify-center items-center flex-col p-[20px]">
+    <div className="w-full h-[100vh] bg-gradient-to-t from-[black] to-[#030353] flex justify-center items-center flex-col p-[20px] relative">
+      <MdKeyboardBackspace className="absolute top-[30px] left-[30px] text-white w-[25px] h-[25px] cursor-pointer" onClick={()=>navigate("/customize")}/>
       <h1 className="text-white mb-[30px] text-[30px] text-center">
         Enter Your <span className="text-blue-200">Assistant Name</span>
       </h1>
