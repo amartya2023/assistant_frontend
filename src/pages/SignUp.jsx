@@ -102,7 +102,7 @@ const SignUp = () => {
 
         {/* Sign Up button */}
         <button
-          className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer"
+          className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer hover:bg-blue-600"
           disabled={loading}
         >
           {loading ? "Loading..." : "Sign Up"}
@@ -110,7 +110,7 @@ const SignUp = () => {
         <p className="text-white text-[18px]">
           Already have an account ?{" "}
           <span
-            className="text-blue-500 cursor-pointer"
+            className="text-blue-500 cursor-pointer hover:bg-blue-100 rounded-2xl px-[5px] py-[2px]"
             onClick={() => navigate("/signin")}
           >
             Sign In
