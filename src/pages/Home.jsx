@@ -1,11 +1,17 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { userDataContext } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+// import { set } from "mongoose";
 
 const Home = () => {
-  const { userData, serverUrl, setUserData, getGeminiResponse } = useContext(userDataContext);
+  const { userData, serverUrl, setUserData, getGeminiResponse } =
+    useContext(userDataContext);
   const navigate = useNavigate();
+  const [listening, setListening] = useState(false);
+  const isSpeakingRef = useRef(false);
+  const recognitionRef = useRef(null);
+  const synth = window.speechSynthesis;
 
   const handleLogout = async () => {
     try {
@@ -20,6 +26,52 @@ const Home = () => {
     }
   };
 
+  const speak = (text) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    isSpeakingRef.current = true;
+    utterance.onend = () => {
+      isSpeakingRef.current = false;
+      // recognitionRef.current?.start();
+    }
+
+    synth.speak(utterance);
+  };
+
+  const handleCommand = (data) => {
+    const { type, userInput, response } = data;
+    speak(response);
+
+    if (type === "google_search") {
+      const query = encodeURIComponent(userInput);
+      window.open(`https://www.google.com/search?q=${query}`, "_blank");
+    }
+
+    if (type === "calculator_open") {
+      window.open(`https://www.google.com/search?q=calculator`, "_blank");
+    }
+
+    if (type === "instagram_open") {
+      window.open(`https://www.instagram.com/`, "_blank");
+    }
+
+    if (type === "facebook_open") {
+      window.open(`https://www.facebook.com/`, "_blank");
+    }
+
+    if (type === "weather-show") {
+      window.open(`https://www.google.com/search?q=weather`, "_blank");
+    }
+
+    if (type === "youtube_search" || type === "youtube_play") {
+      const query = encodeURIComponent(userInput);
+      window.open(
+        `https://www.youtube.com/results?search_query=${query}`,
+        "_blank"
+      );
+    }
+  };
+
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -28,17 +80,82 @@ const Home = () => {
     recognition.continuous = true;
     recognition.lang = "en-US";
 
-    recognition.onresult = async(e) => {
-      const transcript = e.results[e.results.length-1][0].transcript.trim();
-      console.log(transcript)
+    recognitionRef.current = recognition;
+    const isRecognizingRef = { current: false };
 
-      if(transcript.toLowerCase().includes(userData.assistantName.toLowerCase())){
-        const data = await getGeminiResponse(transcript);
-        console.log(data)
+    const safeRecognition = () => {
+      if (!isSpeakingRef.current && !isRecognizingRef.current) {
+        try {
+          recognition.start();
+          console.log("Recognition requested to start");
+        } catch (error) {
+          if (error.name !== "InvalidStateError") {
+            console.error("Start Error:", error);
+          }
+        }
       }
+    };
+
+    recognition.onstart = () => {
+      console.log("Voice recognition started");
+      isRecognizingRef.current = true;
+      setListening(true);
+    };
+
+    recognition.onend = () => {
+      console.log("Voice recognition ended");
+      isRecognizingRef.current = false;
+      setListening(false);
+    };
+
+    if (!isSpeakingRef.current) {
+      setTimeout(() => {
+        safeRecognition();
+      }, 1000);
     }
 
-    recognition.start();
+    recognition.onerror = (event) => {
+      console.warn("Recognition Error:", event.error);
+      isRecognizingRef.current = false;
+      setListening(false);
+      if (event.error !== "aborted" && !isSpeakingRef.current) {
+        setTimeout(() => {
+          safeRecognition();
+        }, 1000);
+      }
+    };
+
+    recognition.onresult = async (e) => {
+      const transcript = e.results[e.results.length - 1][0].transcript.trim();
+      console.log(transcript);
+
+      if (
+        transcript.toLowerCase().includes(userData.assistantName.toLowerCase())
+      ) {
+        recognition.stop();
+        setListening(false);
+        isRecognizingRef.current = false;
+
+        const data = await getGeminiResponse(transcript);
+        console.log(data);
+        // speak(data.response);
+        handleCommand(data);
+      }
+    };
+
+    const fallback = setInterval(() => {
+      if (!isSpeakingRef.current && !isRecognizingRef.current) {
+        safeRecognition();
+      }
+    }, 10000);
+    safeRecognition();
+
+    return () => {
+      recognition.stop();
+      setListening(false);
+      isRecognizingRef.current = false;
+      clearInterval(fallback);
+    };
   }, []);
 
   return (
