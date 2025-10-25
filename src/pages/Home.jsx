@@ -26,13 +26,31 @@ const Home = () => {
     }
   };
 
+  const startRecognition = () => {
+    try {
+      recognitionRef.current?.start();
+      setListening(true);
+    } catch (error) {
+      if(!error.message.includes("start")) {
+        console.error("Recognition error:", error);
+      }
+    }
+  }
+
   const speak = (text) => {
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "hi-IN";
+    const voices = window.speechSynthesis.getVoices();
+    const hindiVoice = voices.find(v => v.lang === "hi-IN");
+    if(hindiVoice) {
+      utterance.voice = hindiVoice;
+    }
 
     isSpeakingRef.current = true;
     utterance.onend = () => {
       isSpeakingRef.current = false;
       // recognitionRef.current?.start();
+      startRecognition();
     }
 
     synth.speak(utterance);
