@@ -2,6 +2,10 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import { userDataContext } from "../context/userContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import aiImg from "../assets/ai.gif";
+import userImg from "../assets/user.gif";
+import { CgMenuRight } from "react-icons/cg";
+import { RxCross1 } from "react-icons/rx";
 // import { set } from "mongoose";
 
 const Home = () => {
@@ -9,8 +13,12 @@ const Home = () => {
     useContext(userDataContext);
   const navigate = useNavigate();
   const [listening, setListening] = useState(false);
+  const [userText, setUserText] = useState("");
+  const [aiText, setAiText] = useState("");
   const isSpeakingRef = useRef(false);
   const recognitionRef = useRef(null);
+  const isRecognizingRef = useRef(false);
+  const [ham, setHam] = useState(false);
   const synth = window.speechSynthesis;
 
   const handleLogout = async () => {
@@ -31,27 +39,30 @@ const Home = () => {
       recognitionRef.current?.start();
       setListening(true);
     } catch (error) {
-      if(!error.message.includes("start")) {
+      if (!error.message.includes("start")) {
         console.error("Recognition error:", error);
       }
     }
-  }
+  };
 
   const speak = (text) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "hi-IN";
     const voices = window.speechSynthesis.getVoices();
-    const hindiVoice = voices.find(v => v.lang === "hi-IN");
-    if(hindiVoice) {
+    const hindiVoice = voices.find((v) => v.lang === "hi-IN");
+
+    if (hindiVoice) {
       utterance.voice = hindiVoice;
     }
 
     isSpeakingRef.current = true;
+
     utterance.onend = () => {
+      setAiText("");
       isSpeakingRef.current = false;
       // recognitionRef.current?.start();
       startRecognition();
-    }
+    };
 
     synth.speak(utterance);
   };
@@ -99,7 +110,6 @@ const Home = () => {
     recognition.lang = "en-US";
 
     recognitionRef.current = recognition;
-    const isRecognizingRef = { current: false };
 
     const safeRecognition = () => {
       if (!isSpeakingRef.current && !isRecognizingRef.current) {
@@ -150,6 +160,8 @@ const Home = () => {
       if (
         transcript.toLowerCase().includes(userData.assistantName.toLowerCase())
       ) {
+        setAiText("");
+        setUserText(transcript);
         recognition.stop();
         setListening(false);
         isRecognizingRef.current = false;
@@ -158,6 +170,8 @@ const Home = () => {
         console.log(data);
         // speak(data.response);
         handleCommand(data);
+        setAiText(data.response);
+        setUserText("");
       }
     };
 
@@ -177,15 +191,50 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="w-full h-[100vh] bg-gradient-to-t from-[black] to-[#030353] flex justify-center items-center flex-col gap-[15px]">
+    <div className="w-full h-[100vh] bg-gradient-to-t from-[black] to-[#030353] flex justify-center items-center flex-col gap-[15px] overflow-hidden">
+      <CgMenuRight
+        className="lg:hidden text-white absolute top-[20px] right-[20px] w-[25px] h-[25px] cursor-pointer"
+        onClick={() => setHam(true)}
+      />
+      <div
+        className={`absolute lg:hidden top-0 w-full h-full bg-[#0000002c] backdrop-blur-md p-[20px] flex flex-col gap-[20px] items-start ${
+          ham ? "translate-x-0" : "-translate-x-full"
+        } transition-transform`}
+      >
+        <RxCross1
+          className="lg:hidden text-white absolute top-[20px] right-[20px] w-[25px] h-[25px] cursor-pointer"
+          onClick={() => setHam(false)}
+        />
+        <button
+          className="min-w-[150px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer hover:bg-blue-600"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
+        <button
+          className="min-w-[150px] h-[60px] text-black font-semibold bg-white rounded-full text-[19px] cursor-pointer px-[20px] py-[10px] hover:bg-blue-600"
+          onClick={() => navigate("/customize")}
+        >
+          Customize Your Assistant
+        </button>
+
+        <div className="w-full h-[2px] bg-gray-400"></div>
+        <h1 className="text-white font-semibold text-[19px]">History</h1>
+
+        <div className="w-full h-[400px] overflow-y-auto flex flex-col gap-[6px]">
+          {userData.history?.map((his) => (
+            <span className="text-gray-200 text-[16px] truncate">{his}</span>
+          ))}
+        </div>
+      </div>
       <button
-        className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white absolute top-[20px] right-[20px] rounded-full text-[19px] cursor-pointer hover:bg-blue-600"
+        className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold bg-white absolute hidden lg:block top-[20px] right-[20px] rounded-full text-[19px] cursor-pointer hover:bg-blue-600"
         onClick={handleLogout}
       >
         Logout
       </button>
       <button
-        className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold absolute top-[100px] right-[20px] bg-white rounded-full text-[19px] cursor-pointer px-[20px] py-[10px] hover:bg-blue-600"
+        className="min-w-[150px] mt-[30px] h-[60px] text-black font-semibold absolute hidden lg:block top-[100px] right-[20px] bg-white rounded-full text-[19px] cursor-pointer px-[20px] py-[10px] hover:bg-blue-600"
         onClick={() => navigate("/customize")}
       >
         Customize Your Assistant
@@ -199,6 +248,11 @@ const Home = () => {
       </div>
       <h1 className="text-white text-[18px] font-semibold">
         I'm {userData?.assistantName}
+      </h1>
+      {!aiText && <img src={userImg} alt="" className="w-[200px]" />}
+      {aiText && <img src={aiImg} alt="" className="w-[200px]" />}
+      <h1 className="text-white text-[18px] font-semibold text-wrap">
+        {userText ? userText : aiText ? aiText : null}
       </h1>
     </div>
   );
