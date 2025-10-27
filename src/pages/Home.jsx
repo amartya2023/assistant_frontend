@@ -287,9 +287,9 @@ const Home = () => {
         <div className="w-full h-[2px] bg-gray-400"></div>
         <h1 className="text-white font-semibold text-[19px]">History</h1>
 
-        <div className="w-full h-[400px] overflow-y-auto flex flex-col gap-[6px]">
+        <div className="w-full h-[600px] overflow-y-auto flex flex-col gap-[6px]">
           {userData.history?.map((his) => (
-            <span className="text-gray-200 text-[16px] truncate">{his}</span>
+            <span className="text-gray-200 text-[16px] ">{his}</span>
           ))}
         </div>
       </div>
